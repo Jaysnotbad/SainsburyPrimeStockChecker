@@ -19,7 +19,7 @@ def get_access_token():
     
 
 def get_shop_list(AT):
-    shop=input("What shop are you searching for?: ")
+    shop=input("\nWhat shop are you searching for?: ")
     shop = shop.rsplit()
     query_link="https://stockchecker.sainsburys.co.uk/api/store/search?store_type=main,local&complete="
     for i in shop:
@@ -58,7 +58,11 @@ def get_correct_store(names_ids):
     print("\n")
 
     correct_store = int(input("Which store are you referring to?: "))
-    chosen_store_id=names_ids[chosen[correct_store]]
+    try:
+        chosen_store_id=names_ids[chosen[correct_store]]
+    except Exception as err:
+        if err == TypeError:
+            print("This store doesnt stock Prime.")
     return chosen_store_id, chosen, correct_store
 
 def get_info(chosen_store_id, AT, chosen, correct_store):
@@ -68,8 +72,12 @@ def get_info(chosen_store_id, AT, chosen, correct_store):
     get_product_headers={"authorization": f"Bearer {AT}","content-type":"application/json"}
     get_product=requests.post("https://stockchecker.sainsburys.co.uk/api/products/search", data=json.dumps(product_payload), headers=get_product_headers).json()
     info={}
-    for i in range(len(get_product["data"]["productSearch"]["storeProducts"])):
-        info.update({get_product["data"]["productSearch"]["storeProducts"][i]["description"]:int(get_product["data"]["productSearch"]["storeProducts"][i]["store"]["stock"]["onHand"])})
+    try:
+        for i in range(len(get_product["data"]["productSearch"]["storeProducts"])):
+            info.update({get_product["data"]["productSearch"]["storeProducts"][i]["description"]:int(get_product["data"]["productSearch"]["storeProducts"][i]["store"]["stock"]["onHand"])})
+    except TypeError:
+        print("\nStock is not loaded at this store.")
+        return
     info_printable=f"\nInfo for {chosen[correct_store]}: \n\n"
 
     for i in info:
